@@ -14,7 +14,7 @@ help:
 
 
 local-streamlit:
-	cd streamlit-docker && docker-compose up --build streamlit
+	cd streamlit-docker && docker-compose -f docker-compose.yml -f docker-compose.local.yaml up --build streamlit
 
 
 prepare-deploy-streamlit:

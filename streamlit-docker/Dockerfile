@@ -1,4 +1,5 @@
 FROM python:3.10
+RUN apt-get update && apt-get install -y tor privoxy
 EXPOSE 8501
 WORKDIR /app
 COPY requirements.txt ./requirements.txt

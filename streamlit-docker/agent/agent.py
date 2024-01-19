@@ -6,10 +6,9 @@ import boto3
 from langchain.llms.bedrock import Bedrock
 from langchain.tools.render import render_text_description
 from langchain.agents import Tool, AgentExecutor
-from langchain.utilities import DuckDuckGoSearchAPIWrapper
 from langchain import hub
 
-from agent.agent_util import ClaudeReActSingleInputOutputParser, DuckDuckGoSearchResults, format_log_to_str
+from agent.agent_util import ClaudeReActSingleInputOutputParser, DuckDuckGoSearchResults, DuckDuckGoSearchAPIWrapper, format_log_to_str
 from agent.util import colors, highlight, find_matches
 
 
@@ -22,6 +21,7 @@ llm = Bedrock(
 )
 
 # Agent
+
 
 def geIdeaAssistant(callbacks):
     prompt_template = """\
@@ -57,6 +57,7 @@ Assistant:
 <Thought>{agent_scratchpad}
 """
     return WriterAgent(prompt_template, callbacks, 6)
+
 
 def getWritingAssistant(callbacks):
     prompt_template = """\
@@ -96,7 +97,7 @@ Assistant:
 
 class WriterAgent:
 
-    def __init__(self, prompt_template, callbacks, max_results=4) -> None:
+    def __init__(self, prompt_template, callbacks, max_results=5) -> None:
         # Initialize Tool
         wrapper = DuckDuckGoSearchAPIWrapper(
             region="jp-jp", safesearch="strict", max_results=max_results)
@@ -175,7 +176,7 @@ def process_result(result, split_by_word=True):
         "<Title>", "").replace("</Title>", "").replace("<Body>", "").replace("</Body>", "")
     # データソースの取得
     search_results = [search_result for x in result["intermediate_steps"]
-                        for search_result in json.loads(x[1])]
+                      for search_result in json.loads(x[1])]
     # print(output)
     # 同じソースを JOIN
     search_results = [list(v) for _, v in groupby(
@@ -192,12 +193,12 @@ def process_result(result, split_by_word=True):
         # Word ごとにトークンとして分割
         output_tokens = list(output.split())
         search_tokens = [list(search_result['snippet'].split())
-                            for search_result in search_results]
+                         for search_result in search_results]
     else:
         # 一文字ごとにトークンとして分割
         output_tokens = list(output)
         search_tokens = [list(search_result['snippet'])
-                            for search_result in search_results]
+                         for search_result in search_results]
 
     # ハイライト
     # print(output_tokens, search_tokens)
@@ -210,7 +211,7 @@ def process_result(result, split_by_word=True):
         f".c{source} " + "{ color: " + colors[idx % len(colors)] + " !important; }" for idx, source in enumerate(used_source)
     ]) + "</style>"
     sources = [search_results[source]
-                for _, source in enumerate(used_source)]
+               for _, source in enumerate(used_source)]
     sources_html = "\n".join([
         f"""<div>{highlight(search_results[source]['snippet'], source)}</div><a href="{search_results[source]['link']}">{search_results[source]['title']}</a>"""
         for _, source in enumerate(used_source)])

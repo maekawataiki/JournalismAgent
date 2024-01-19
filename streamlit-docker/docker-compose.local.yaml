@@ -1,0 +1,5 @@
+services:
+  streamlit: 
+    volumes:
+      - ~/.aws/credentials:/root/.aws/credentials:ro
+      - ~/.aws/config:/root/.aws/config:ro
