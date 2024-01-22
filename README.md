@@ -10,6 +10,8 @@ This is a demo application of Journalism Assistant Agent based on Anthropic Clau
 
 ## Run Locally
 
+Amazon Bedrock への権限が付与された AWS プロファイルが必要です。また、利用しているリージョンの Anthropic Claude Instant モデルを有効化する必要があります。
+
 ```
 make local-streamlit
 ```
