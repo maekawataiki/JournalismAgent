@@ -1,3 +1,4 @@
+import os
 import json
 from itertools import groupby
 
@@ -7,10 +8,16 @@ from langchain.llms.bedrock import Bedrock
 from langchain.tools.render import render_text_description
 from langchain.agents import Tool, AgentExecutor
 from langchain import hub
+from langchain.tools import BraveSearch
 
-from agent.agent_util import ClaudeReActSingleInputOutputParser, DuckDuckGoSearchResults, DuckDuckGoSearchAPIWrapper, format_log_to_str
+from agent.agent_util import ClaudeReActSingleInputOutputParser, format_log_to_str  #, DuckDuckGoSearchResults, DuckDuckGoSearchAPIWrapper
 from agent.util import colors, highlight, find_matches
+from dotenv import load_dotenv
 
+# .envファイルの内容を読み込見込む
+load_dotenv()
+
+brave_api_key = os.environ.get("BRAVE_API_KEY")
 
 bedrock_client = boto3.client(
     "bedrock-runtime", region_name="us-west-2")
@@ -18,6 +25,11 @@ llm = Bedrock(
     model_id="anthropic.claude-instant-v1",
     client=bedrock_client,
     model_kwargs={'max_tokens_to_sample': 1024}
+)
+claude2 = Bedrock(
+    model_id="anthropic.claude-v2",
+    client=bedrock_client,
+    model_kwargs={'max_tokens_to_sample': 2048}
 )
 
 # Agent
@@ -99,9 +111,13 @@ class WriterAgent:
 
     def __init__(self, prompt_template, callbacks, max_results=5) -> None:
         # Initialize Tool
-        wrapper = DuckDuckGoSearchAPIWrapper(
-            region="jp-jp", safesearch="strict", max_results=max_results)
-        search = DuckDuckGoSearchResults(api_wrapper=wrapper)
+        # wrapper = DuckDuckGoSearchAPIWrapper(
+        #     region="jp-jp", safesearch="strict", max_results=max_results)
+        # search = DuckDuckGoSearchResults(api_wrapper=wrapper)
+        search = BraveSearch.from_api_key(
+            api_key=brave_api_key,
+            search_kwargs={"count": 3, "text_decorations": 0}
+        )
 
         tools = [
             Tool(
@@ -175,6 +191,7 @@ def process_result(result, split_by_word=True):
     output = result["output"].replace("<output>", "").replace("</output>", "").replace(
         "<Title>", "").replace("</Title>", "").replace("<Body>", "").replace("</Body>", "")
     # データソースの取得
+    print(result)
     search_results = [search_result for x in result["intermediate_steps"]
                       for search_result in json.loads(x[1])]
     # print(output)

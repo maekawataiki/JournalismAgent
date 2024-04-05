@@ -4,3 +4,4 @@ langchainhub
 duckduckgo-search>=3.9.5
 streamlit
 pandas
+python-dotenv

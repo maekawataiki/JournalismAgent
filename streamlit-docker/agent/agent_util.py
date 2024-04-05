@@ -108,7 +108,7 @@ class DuckDuckGoSearchAPIWrapper(BaseModel):
 
         extra = Extra.forbid
 
-    @root_validator()
+    @root_validator(allow_reuse=True)
     def validate_environment(cls, values: Dict) -> Dict:
         """Validate that python package exists in environment."""
         try:
@@ -248,4 +248,4 @@ def restart_tor():
     subprocess.run(["killall -HUP tor"], shell=True)
     subprocess.run(["/etc/init.d/tor restart"], shell=True)
 
-restart_tor()
+# restart_tor()
